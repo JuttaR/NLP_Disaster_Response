@@ -54,7 +54,7 @@ def clean_data(df):
         # set value as last character
         categories[column] = categories[column].str[-1]
         # convert from string to integer
-        categories[column] = categories[column].astype(np.int)
+        categories[column] = categories[column].astype(np.int64)
 
     # drop original categories column from df
     df.drop('categories', axis=1, inplace=True)
@@ -115,7 +115,7 @@ def main():
               'well as the filepath of the database to save the cleaned data ' \
               'to as the third argument. \n\nExample: python process_data.py ' \
               'disaster_messages.csv disaster_categories.csv ' \
-              'DisasterResponse.db')
+              'Disaster.db')
 
 
 if __name__ == '__main__':
