@@ -2,13 +2,12 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
-import numpy as np
 import pandas as pd
 import pickle
 import re
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.pipeline import Pipeline
@@ -55,7 +54,7 @@ def tokenize(text):
         cleaned_tokens: Cleaned text (w/o urls, normalized, tokenized, w/o stopwords, lemmatized) as list
     """
     # Use regex expression to detect urls in text
-    url_regex = 'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+    url_regex = "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
     detected_urls = re.findall(url_regex, text)
 
     # Replace all urls with placeholder
@@ -96,16 +95,13 @@ def build_model():
 
     # set up of hyper-parameter dictionary for GridSearchCV of RandomForestClassifier
     params = {
-        'clf__estimator__min_samples_split': [2, 4],
-        # min number of data points placed in a node before the node is split
+        'clf__estimator__min_samples_split': [2, 4],  # min number of data points in node before the node is split
         'clf__estimator__max_features': ['log2', 'auto'],  # max number of features considered for splitting a node
-        'clf__estimator__n_estimators': [10, 20, 50, 100, 250],  # number of trees in the forest
+        'clf__estimator__n_estimators': [10, 20, 50, 100],  # number of trees in the forest
     }
 
     # create model
-    model = GridSearchCV(pipeline, param_grid=params, verbose=2, n_jobs=-1,
-                         cv=3)  # more cv folds reduces the chances of overfitting
-
+    model = GridSearchCV(pipeline, param_grid=params, scoring='accuracy', verbose=3, n_jobs=1, cv=2)
     return model
 
 
@@ -120,16 +116,30 @@ def evaluate_model(model, X_test, y_test, category_names):
         target_names: Names of labels
 
     OUTPUT:
-        Printed classfication report and accuracy for all categories
+        Printed results from GridSearch; classification report and accuracy for all categories
     """
+    # print results from GridSearch
+    model_results_table = pd.concat([pd.DataFrame(model.cv_results_["params"]),
+                                     pd.DataFrame(model.cv_results_["mean_test_score"],
+                                                  columns=["Accuracy"])], axis=1)
+
+    print("GridSearch Results Table")
+    print(model_results_table)
+
+    print("Best-performing parameters from GridSearch:", model.best_params_)
+
     # make predictions on test data
     y_pred = model.predict(X_test)
 
-    # print classification report
-    print(classification_report(y_pred, y_test, target_names=category_names))
+    # print classification reports
+    print("Classification report incl. overall micro, macro, weighted and sample averages")
+    print(classification_report(y_test, y_pred, target_names=category_names, zero_division=0))
 
-    # print accuracy score
-    print('Accuracy Score: {}'.format(np.mean(y_test == y_pred)))
+    print("Individual classification report incl. accuracy, macro and weighted averages")
+    y_pred_df = pd.DataFrame(y_pred, columns=y_test.columns)
+    for category in y_test.columns:
+        print('-------------------------------------------------\n Category: {}\n'.format(category))
+        print(classification_report(y_test[category], y_pred_df[category], zero_division=0))
 
 
 def save_model(model, model_filepath):
@@ -173,7 +183,7 @@ def main():
         print('Please provide the filepath of the disaster messages database ' \
               'as the first argument and the filepath of the pickle file to ' \
               'save the model to as the second argument. \n\nExample: python ' \
-              'train_classifier.py ../data/DisasterResponse.db classifier.pkl')
+              'train_classifier.py ../data/Disaster.db classifier.pkl')
 
 
 if __name__ == '__main__':

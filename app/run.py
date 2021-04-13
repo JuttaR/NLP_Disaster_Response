@@ -1,15 +1,13 @@
+from flask import Flask, render_template, request
+import joblib
 import json
-import plotly
-import pandas as pd
-
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
-
-from flask import Flask
-from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
-from sklearn.externals import joblib
+import pandas as pd
+import plotly
+from plotly.graph_objs import Bar, Heatmap
 from sqlalchemy import create_engine
+
 
 app = Flask(__name__)
 
@@ -34,18 +32,25 @@ df = pd.read_sql_table('df', engine)
 model = joblib.load("../models/classifier.pickle")
 
 
-# index webpage displays cool visuals and receives user input text for model
+# index web page displays visuals and receives user input text for model
 @app.route('/')
 @app.route('/index')
 def index():
-    # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
+    # extract data for visualizations
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
 
-    # create visuals
-    # TODO: Below is an example - modify to create your own visuals
+    category_names = df.iloc[:, 4:].columns
+    category_sums = (df.iloc[:, 4:] != 0).sum().values
+
+    correlation_list = []
+    correlation = df.corr().values
+    for c in correlation:
+        correlation_list.append(list(c))
+
+    # create 3 visualizations: Genres, Categories, Correlations
     graphs = [
+        # 1: Genres
         {
             'data': [
                 Bar(
@@ -55,12 +60,53 @@ def index():
             ],
 
             'layout': {
-                'title': 'Distribution of Message Genres',
+                'title': 'Distribution of Genres',
                 'yaxis': {
                     'title': "Count"
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        },
+        # 2: Categories
+        {
+            'data': [
+                Bar(
+                    x=category_names,
+                    y=category_sums
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Category",
+                    'tickangle': 30
+                }
+            }
+        },
+        # 3: Correlations
+        {
+            'data': [
+                Heatmap(
+                    z=correlation_list,
+                    x=category_names,
+                    y=category_names
+                )
+            ],
+            'layout': {
+                'title': 'Correlation of Categories',
+                'height': 600,
+                'yaxis': {
+                    'title': "Category"
+                },
+                'xaxis': {
+                    'title': "Category",
+                    'tickangle': 30
                 }
             }
         }
@@ -84,7 +130,7 @@ def go():
     classification_labels = model.predict([query])[0]
     classification_results = dict(zip(df.columns[4:], classification_labels))
 
-    # This will render the go.html Please see that file.
+    # render go.html
     return render_template(
         'go.html',
         query=query,
