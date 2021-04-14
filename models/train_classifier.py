@@ -97,11 +97,11 @@ def build_model():
     params = {
         'clf__estimator__min_samples_split': [2, 4],  # min number of data points in node before the node is split
         'clf__estimator__max_features': ['log2', 'auto'],  # max number of features considered for splitting a node
-        'clf__estimator__n_estimators': [10, 20, 50, 100],  # number of trees in the forest
+        'clf__estimator__n_estimators': [50, 100],  # number of trees in the forest
     }
 
     # create model
-    model = GridSearchCV(pipeline, param_grid=params, scoring='accuracy', verbose=3, n_jobs=1, cv=2)
+    model = GridSearchCV(pipeline, param_grid=params, scoring='accuracy', verbose=3, n_jobs=1, cv=3)
     return model
 
 
