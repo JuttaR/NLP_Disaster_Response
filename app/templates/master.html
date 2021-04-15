@@ -5,62 +5,63 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Disasters</title>
-
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <title>JuttaR's Disaster Response Project</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 
 <body>
-
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="/">Disaster Response Project</a>
-        </div>
-        <div id="navbar" class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
-                <li><a href="https://www.udacity.com/">Made with Udacity</a></li>
-                <li><a href="https://github.com/">Contact</a></li>
-            </ul>
-        </div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Data Engineering Project</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/JuttaR/DisasterResponse" target="_blank">GitHub Repo</a>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>
 
-
-<div class="jumbotron">
-    <div class="container">
-        <h1 class="text-center">Disaster Response Project</h1>
-        <p class="text-center">Analyzing message data for disaster response</p>
-        <hr />
-
-        <div class="row">
-            <div class="col-lg-12 form-group-lg">
-                <form action="/go" method="get">
-                    <input type="text" class="form-control form-control-lg" name="query" placeholder="Enter a message to classify">
-                    <div class="col-lg-offset-5">
-                        <button type="submit" class="btn btn-lg btn-success">Classify Message</button>
-                    </div>
-                </form>
+<div class="container-lg mt-5">
+    <div class="container-md mb-4">
+        <img src="{{ url_for('static', filename='emergency-response.png' ) }}" alt="Emergency Response" height="90px" align="left">
+        <h1 class="text-center">Disaster Response</h1>
+        <p class="text-center">Analyzing message data for disaster response.</p>
+    </div>
+    <div class="container-md mt-5 mb-5">
+        <form action="/go" method="get">
+            <div class="container-md mb-3">
+            <input type="text" class="form-control form-control-md" name="query" placeholder="Enter a message to classify">
             </div>
-        </div>
-
-        {% block message %}
-        {% endblock %}
+            <div class="container-md mb-4">
+            <button type="submit" class="btn btn-md btn-danger">Classify Message</button>
+            </div>
+        </form>
     </div>
 </div>
+        {% block message %}
+        {% endblock %}
 
-<div class="container">
+<div class="container-md">
     {% block content %}
-        <div class="page-header">
-            <h1 class="text-center">Overview of Training Dataset</h1>
-        </div>
+            <h2 class="text-center">Overview of Dataset</h2>
+            <p class="text-center">Data provided by Figure Eight (now Appen) as part of the Data Scientist Nanodegree on Udacity.</p>
+        <hr />
+    </div>
     {% endblock %}
 
     {% for id in ids %}
         <div id="{{id}}"></div>
+        <br>
     {% endfor %}
 </div>
 
@@ -71,6 +72,6 @@
         Plotly.plot(ids[i], graphs[i].data, graphs[i].layout);
     }
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
 </body>
 </html>

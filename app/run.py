@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, url_for
 import joblib
 import json
 from nltk.stem import WordNetLemmatizer
@@ -25,23 +25,30 @@ def tokenize(text):
 
 
 # load data
+print("Connecting to SQL database...")
 engine = create_engine('sqlite:///../data/Disaster.db')
+
+print("Reading in SQL table as df...")
 df = pd.read_sql_table('df', engine)
 
 # load model
+print("Loading model as model...")
 model = joblib.load("../models/classifier.pickle")
 
+print("Completed loading data and model.")
 
 # index web page displays visuals and receives user input text for model
+
+
 @app.route('/')
 @app.route('/index')
 def index():
     # extract data for visualizations
-    genre_counts = df.groupby('genre').count()['message']
+    genre_counts = df.groupby('genre').count()['message'].sort_values(ascending=False)
     genre_names = list(genre_counts.index)
 
-    category_names = df.iloc[:, 4:].columns
-    category_sums = (df.iloc[:, 4:] != 0).sum().values
+    category_sums = df[df.columns[4:]].sum().sort_values(ascending=False)
+    category_names = list(category_sums.index)
 
     correlation_list = []
     correlation = df.corr().values
@@ -51,65 +58,21 @@ def index():
     # create 3 visualizations: Genres, Categories, Correlations
     graphs = [
         # 1: Genres
-        {
-            'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
-                )
-            ],
-
-            'layout': {
-                'title': 'Distribution of Genres',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Genre"
-                }
-            }
-        },
+        {'data': [Bar(x=genre_names, y=genre_counts)],
+         'layout': {'title': 'Distribution of Genres',
+                    'yaxis': {'title': "Count"},
+                    'xaxis': {'title': "Genre"}}},
         # 2: Categories
-        {
-            'data': [
-                Bar(
-                    x=category_names,
-                    y=category_sums
-                )
-            ],
-
-            'layout': {
-                'title': 'Distribution of Categories',
-                'yaxis': {
-                    'title': "Count"
-                },
-                'xaxis': {
-                    'title': "Category",
-                    'tickangle': 30
-                }
-            }
-        },
+        {'data': [Bar(x=category_names, y=category_sums)],
+         'layout': {'template': 'plotly_dark',
+                    'title': 'Distribution of Categories',
+                    'yaxis': {'title': "Count"},
+                    'xaxis': {'tickangle': 30}}},
         # 3: Correlations
-        {
-            'data': [
-                Heatmap(
-                    z=correlation_list,
-                    x=category_names,
-                    y=category_names
-                )
-            ],
-            'layout': {
-                'title': 'Correlation of Categories',
-                'height': 600,
-                'yaxis': {
-                    'title': "Category"
-                },
-                'xaxis': {
-                    'title': "Category",
-                    'tickangle': 30
-                }
-            }
-        }
+        {'data': [Heatmap(z=correlation_list, x=category_names, y=category_names)],
+         'layout': {'title': 'Correlation of Categories',
+                    'height': 500,
+                    'xaxis': {'tickangle': 30}}}
     ]
 
     # encode plotly graphs in JSON
@@ -131,15 +94,11 @@ def go():
     classification_results = dict(zip(df.columns[4:], classification_labels))
 
     # render go.html
-    return render_template(
-        'go.html',
-        query=query,
-        classification_result=classification_results
-    )
+    return render_template('go.html', query=query, classification_result=classification_results)
 
 
 def main():
-    app.run(host='0.0.0.0', port=3001, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
 
 
 if __name__ == '__main__':
